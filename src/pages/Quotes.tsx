@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Papa from 'papaparse';
 import { v4 as uuidv4 } from 'uuid';
 import { generatePdf, sharePdf } from '../utils/pdfGenerator';
+import { safeFormatDate } from '../utils/dateUtils';
 import { StatCard } from '../components/StatCard';
 import { Modal } from '../components/Modal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -211,8 +212,8 @@ export default function Quotes() {
 
       try {
         const client = clients.find(c => c.id === quote.clientId);
-        const safeName = client?.name.replace(/[^a-zA-Z0-9\s]/g, '').trim().replace(/\s+/g, '_') || 'Cliente';
-        const dateStr = new Date(quote.date).toLocaleDateString('pt-BR').replace(/\//g, '-');
+        const safeName = client?.name ? client.name.replace(/[^a-zA-Z0-9\s]/g, '').trim().replace(/\s+/g, '_') : 'Cliente';
+        const dateStr = safeFormatDate(quote.date).replace(/\//g, '-');
         const fileName = `Orcamento_${safeName}_${dateStr}.pdf`;
 
         await generatePdf(element, fileName);
@@ -242,8 +243,8 @@ export default function Quotes() {
 
       try {
         const client = clients.find(c => c.id === quote.clientId);
-        const safeName = client?.name.replace(/[^a-zA-Z0-9\s]/g, '').trim().replace(/\s+/g, '_') || 'Cliente';
-        const dateStr = new Date(quote.date).toLocaleDateString('pt-BR').replace(/\//g, '-');
+        const safeName = client?.name ? client.name.replace(/[^a-zA-Z0-9\s]/g, '').trim().replace(/\s+/g, '_') : 'Cliente';
+        const dateStr = safeFormatDate(quote.date).replace(/\//g, '-');
         const fileName = `Orcamento_${safeName}_${dateStr}.pdf`;
 
         await sharePdf(element, fileName);
@@ -379,7 +380,7 @@ export default function Quotes() {
                              quote.status === 'APPROVED' ? 'Aprovado' : 'Rejeitado'}
                           </span>
                           <span className="text-xs text-white/40 font-mono">
-                            {new Date(quote.date).toLocaleDateString('pt-BR')}
+                            {safeFormatDate(quote.date)}
                           </span>
                         </div>
                         <h3 className="text-xl font-bold text-white mb-1 line-clamp-1" title={client?.name || 'Cliente Desconhecido'}>
@@ -718,7 +719,7 @@ export default function Quotes() {
                   {clients.find(c => c.id === viewingQuote.clientId)?.name}
                 </h3>
                 <p className="text-sm text-white/40 font-mono mt-1">
-                  Emitido em {new Date(viewingQuote.date).toLocaleDateString('pt-BR')}
+                  Emitido em {safeFormatDate(viewingQuote.date)}
                 </p>
               </div>
               <div className="text-right">
@@ -813,7 +814,7 @@ export default function Quotes() {
                 <div className="text-[12px] font-bold uppercase tracking-widest text-zinc-400">
                   <span>REF: #{quoteToPrint.id.substring(0, 8).toUpperCase()}</span>
                   <span className="mx-3">|</span>
-                  <span>{new Date(quoteToPrint.date).toLocaleDateString('pt-BR')}</span>
+                  <span>{safeFormatDate(quoteToPrint.date)}</span>
                 </div>
               </div>
             </div>

@@ -215,7 +215,11 @@ export default function Financial() {
 
   const latestReceipts = useMemo(() => {
     return [...receipts]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a, b) => {
+        const dateA = a.date ? new Date(a.date).getTime() : 0;
+        const dateB = b.date ? new Date(b.date).getTime() : 0;
+        return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+      })
       .slice(0, 8);
   }, [receipts]);
 
@@ -344,8 +348,8 @@ export default function Financial() {
   };
   const handleAddCost = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description || value <= 0) {
-      toast.error('Preencha descrição e valor válido.');
+    if (!description || value <= 0 || !date) {
+      toast.error('Preencha descrição, valor válido e data.');
       return;
     }
 
@@ -362,8 +366,8 @@ export default function Financial() {
 
   const handleAddIncome = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description || value <= 0 || !clientId) {
-      toast.error('Preencha cliente, descrição e valor válido.');
+    if (!description || value <= 0 || !clientId || !date) {
+      toast.error('Preencha cliente, descrição, valor válido e data.');
       return;
     }
 
@@ -381,13 +385,20 @@ export default function Financial() {
   const transactions = [
     ...receipts.map(r => ({ ...r, type: 'income' as const })),
     ...costs.map(c => ({ ...c, type: 'expense' as const }))
-  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  ].sort((a, b) => {
+    const dateA = a.date ? new Date(a.date).getTime() : 0;
+    const dateB = b.date ? new Date(b.date).getTime() : 0;
+    return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+  });
 
   const monthlyData = useMemo(() => {
     const dataByMonth: Record<string, { name: string, receitas: number, despesas: number, saldo: number }> = {};
     
     transactions.forEach(t => {
+      if (!t.date) return;
       const date = new Date(t.date);
+      if (isNaN(date.getTime())) return;
+      
       const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       const monthName = date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
       
@@ -533,7 +544,7 @@ export default function Financial() {
             <tbody className="divide-y divide-white/5">
               {transactions.slice(0, 50).map(t => (
                 <tr key={t.id} className="group hover:bg-white/5 transition-colors">
-                  <td className="py-4 text-sm text-white/60">{new Date(t.date).toLocaleDateString()}</td>
+                  <td className="py-4 text-sm text-white/60">{t.date && !isNaN(new Date(t.date).getTime()) ? new Date(t.date).toLocaleDateString() : 'Data inválida'}</td>
                   <td className="py-4 text-sm font-bold text-white">{t.description}</td>
                   <td className="py-4 text-sm text-white/40">
                     {t.type === 'income' ? (clients.find(c => c.id === (t as any).clientId)?.name || 'Cliente') : (t as any).category}
@@ -996,7 +1007,7 @@ export default function Financial() {
                       <>
                         <span className="text-[8px] font-black text-white/40 truncate w-full mb-1">{receipt.description}</span>
                         <span className="text-[10px] font-black text-cyan-400">R$ {receipt.value.toLocaleString('pt-BR')}</span>
-                        <span className="text-[6px] font-medium text-white/20 mt-1">{new Date(receipt.date).toLocaleDateString('pt-BR')}</span>
+                        <span className="text-[6px] font-medium text-white/20 mt-1">{receipt.date && !isNaN(new Date(receipt.date).getTime()) ? new Date(receipt.date).toLocaleDateString('pt-BR') : 'Data inválida'}</span>
                       </>
                     ) : (
                       <span className="text-[10px] font-black text-white/10 group-hover/item:text-cyan-400">0{i + 1}</span>
@@ -1377,7 +1388,7 @@ export default function Financial() {
                   <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-white/30 pt-4">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-3 h-3" />
-                      <span>{goal.deadline ? new Date(goal.deadline).toLocaleDateString('pt-BR') : 'Sem prazo'}</span>
+                      <span>{goal.deadline && !isNaN(new Date(goal.deadline).getTime()) ? new Date(goal.deadline).toLocaleDateString('pt-BR') : 'Sem prazo'}</span>
                     </div>
                     <span className={`px-3 py-1 rounded-full border ${goal.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
                       {goal.status === 'COMPLETED' ? 'Concluído' : 'Em Andamento'}
@@ -1456,7 +1467,7 @@ export default function Financial() {
               <div className="mt-auto flex justify-between items-center text-[10px] font-black uppercase tracking-widest relative z-10">
                 <div className="flex items-center gap-2 text-white/30">
                   <Calendar className="w-3 h-3" />
-                  <span>{new Date(t.date).toLocaleDateString('pt-BR')}</span>
+                  <span>{t.date && !isNaN(new Date(t.date).getTime()) ? new Date(t.date).toLocaleDateString('pt-BR') : 'Data inválida'}</span>
                 </div>
                 <span className={`px-4 py-1.5 rounded-full border ${t.type === 'income' ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
                   {t.type === 'income' ? 'Receita' : (t as Cost).category}

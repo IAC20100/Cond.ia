@@ -18,6 +18,7 @@ import { BackButton } from '../components/BackButton';
 import { Modal } from '../components/Modal';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
+import { safeFormatDate } from '../utils/dateUtils';
 import { generatePdf, sharePdf } from '../utils/pdfGenerator';
 import { toast } from 'react-hot-toast';
 
@@ -377,7 +378,7 @@ export default function QRManager() {
                     <div key={report.id} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all group">
                       <div className="flex items-center justify-between mb-4">
                         <span className="text-[10px] font-black uppercase tracking-widest text-white/20">
-                          {new Date(report.date).toLocaleDateString('pt-BR')}
+                          {safeFormatDate(report.date)}
                         </span>
                         <div className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
                           report.status === 'PENDENTE_APROVACAO' ? 'bg-amber-500/20 text-amber-400' :

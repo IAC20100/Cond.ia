@@ -11,6 +11,7 @@ import {
   LineChart, Line, Tooltip as RechartsTooltip
 } from 'recharts';
 import { Ticket } from '../types';
+import { safeFormatDate } from '../utils/dateUtils';
 
 interface TicketsMirrorProps {
   tickets: Ticket[];
@@ -66,11 +67,15 @@ export function TicketsMirror({ tickets: allTickets, className = '', showLabel =
 
   // Real Weekly Flow
   const realWeeklyFlow = [...tickets]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => {
+      const dateA = a.date ? new Date(a.date).getTime() : 0;
+      const dateB = b.date ? new Date(b.date).getTime() : 0;
+      return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+    })
     .slice(0, 5)
     .map(t => ({
       id: t.id,
-      day: new Date(t.date).toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase().replace('.', ''),
+      day: safeFormatDate(t.date, { weekday: 'short' }).toUpperCase().replace('.', ''),
       task: t.title || 'Sem título',
       status: t.status === 'CONCLUIDO' ? 'Conc.' : t.status === 'REALIZANDO' || t.status === 'AGUARDANDO_MATERIAL' ? 'Em And.' : 'Pend.',
       color: t.status === 'CONCLUIDO' ? 'text-emerald-400' : t.status === 'REALIZANDO' || t.status === 'AGUARDANDO_MATERIAL' ? 'text-amber-400' : 'text-orange-400'

@@ -17,6 +17,7 @@ import { BackButton } from '../components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
+import { safeFormatDate } from '../utils/dateUtils';
 
 export default function QRReports() {
   const navigate = useNavigate();
@@ -119,7 +120,7 @@ export default function QRReports() {
                       <div className="flex flex-wrap items-center gap-6 mb-8">
                         <div className="flex items-center gap-2 text-[10px] font-black text-white/30 uppercase tracking-widest">
                           <Calendar className="w-3 h-3 text-amber-400" />
-                          {new Date(report.date).toLocaleDateString('pt-BR')} {new Date(report.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          {safeFormatDate(report.date)} {new Date(report.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }).replace('Invalid Date', 'Data inválida')}
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-black text-amber-400 uppercase tracking-widest">
                           <MapPin className="w-3 h-3" />

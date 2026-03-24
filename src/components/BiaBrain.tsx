@@ -352,7 +352,7 @@ export const BiaBrain: React.FC = () => {
               description: result.data.description,
               value: result.data.amount,
               date: result.data.date || new Date().toISOString().split('T')[0],
-              clientId: findResident(result.data.apartment, result.data.tower)?.id
+              clientId: findResident(result.data.apartment, result.data.tower)?.id || 'avulso'
             });
           } else {
             await store.addCost({

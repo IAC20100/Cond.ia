@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { GoogleGenAI, Type, FunctionDeclaration } from '@google/genai';
 import { toast } from 'react-hot-toast';
 import jsPDF from 'jspdf';
+import { safeFormatDate } from '../utils/dateUtils';
 
 interface Message {
   id: string;
@@ -49,7 +50,7 @@ export function AssistantBia() {
     doc.text('ORDEM DE SERVIÇO', 105, 20, { align: 'center' });
     
     doc.setFontSize(10);
-    doc.text(`Data: ${new Date(ticket.date).toLocaleDateString()}`, 195, 20, { align: 'right' });
+    doc.text(`Data: ${safeFormatDate(ticket.date)}`, 195, 20, { align: 'right' });
     doc.text(`OS Nº: ${ticket.osNumber || ticket.id}`, 195, 25, { align: 'right' });
 
     // Company Info
@@ -97,7 +98,7 @@ export function AssistantBia() {
     doc.text('ORÇAMENTO', 105, 20, { align: 'center' });
     
     doc.setFontSize(10);
-    doc.text(`Data: ${new Date(quote.date).toLocaleDateString()}`, 195, 20, { align: 'right' });
+    doc.text(`Data: ${safeFormatDate(quote.date)}`, 195, 20, { align: 'right' });
     doc.text(`ID: ${quote.id}`, 195, 25, { align: 'right' });
 
     // Company Info
@@ -229,23 +230,31 @@ export function AssistantBia() {
         const monthReceipts = store.receipts.filter(r => filterByMonth(r.date));
         if (monthReceipts.length === 0) return "Não encontrei recebimentos registrados para este mês.";
         const highest = monthReceipts.reduce((prev, current) => (prev.value > current.value) ? prev : current);
-        return `O maior recebimento deste mês foi de R$ ${highest.value.toFixed(2)} (${highest.description}) no dia ${new Date(highest.date).toLocaleDateString()}.`;
+        return `O maior recebimento deste mês foi de R$ ${highest.value.toFixed(2)} (${highest.description}) no dia ${safeFormatDate(highest.date)}.`;
       
       case 'LAST_RECEIPT':
         if (store.receipts.length === 0) return "Não há registros de entrada de dinheiro no sistema.";
-        const lastR = [...store.receipts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-        return `A última entrada de dinheiro foi de R$ ${lastR.value.toFixed(2)} (${lastR.description}) em ${new Date(lastR.date).toLocaleDateString()}.`;
+        const lastR = [...store.receipts].sort((a, b) => {
+          const dateA = a.date ? new Date(a.date).getTime() : 0;
+          const dateB = b.date ? new Date(b.date).getTime() : 0;
+          return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+        })[0];
+        return `A última entrada de dinheiro foi de R$ ${lastR.value.toFixed(2)} (${lastR.description}) em ${safeFormatDate(lastR.date)}.`;
 
       case 'HIGHEST_COST':
         const monthCosts = store.costs.filter(c => filterByMonth(c.date));
         if (monthCosts.length === 0) return "Não encontrei despesas registradas para este mês.";
         const highestC = monthCosts.reduce((prev, current) => (prev.value > current.value) ? prev : current);
-        return `A maior despesa deste mês foi de R$ ${highestC.value.toFixed(2)} (${highestC.description}) no dia ${new Date(highestC.date).toLocaleDateString()}.`;
+        return `A maior despesa deste mês foi de R$ ${highestC.value.toFixed(2)} (${highestC.description}) no dia ${safeFormatDate(highestC.date)}.`;
 
       case 'LAST_COST':
         if (store.costs.length === 0) return "Não há registros de saída de dinheiro no sistema.";
-        const lastC = [...store.costs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-        return `A última saída de dinheiro foi de R$ ${lastC.value.toFixed(2)} (${lastC.description}) em ${new Date(lastC.date).toLocaleDateString()}.`;
+        const lastC = [...store.costs].sort((a, b) => {
+          const dateA = a.date ? new Date(a.date).getTime() : 0;
+          const dateB = b.date ? new Date(b.date).getTime() : 0;
+          return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+        })[0];
+        return `A última saída de dinheiro foi de R$ ${lastC.value.toFixed(2)} (${lastC.description}) em ${safeFormatDate(lastC.date)}.`;
 
       default:
         return "Não consegui processar essa consulta financeira específica. Posso informar o maior recebimento, a última entrada, a maior despesa ou a última saída.";

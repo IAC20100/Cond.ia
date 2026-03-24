@@ -2,6 +2,7 @@ import { useStore } from '../store';
 import { TicketStatus } from '../types';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { safeFormatDate } from '../utils/dateUtils';
 import { 
   Users, FileText, Plus, Hammer, 
   DollarSign, TrendingUp, Package, Database, 
@@ -12,7 +13,7 @@ import {
   Box, UserCheck, Activity, Maximize2, CheckCircle2, Presentation, LogOut,
   X, Download, FileUp, Database as DatabaseIcon, MessageSquare, Target,
   Wifi, WifiOff, GripVertical, ClipboardList, LayoutList,
-  Bell, Truck, Brain
+  Bell, Truck, Brain, ExternalLink
 } from 'lucide-react';
 import { KanbanMirror } from '../components/KanbanMirror';
 import { TicketsMirror } from '../components/TicketsMirror';
@@ -324,7 +325,7 @@ export default function Dashboard() {
       if (!notifications.some(n => n.message.includes(item.item) && n.message.includes(client?.name || ''))) {
         addNotification({
           title: 'Manutenção Atrasada!',
-          message: `${item.item} em ${client?.name} venceu em ${new Date(item.nextDate).toLocaleDateString('pt-BR')}`,
+          message: `${item.item} em ${client?.name} venceu em ${safeFormatDate(item.nextDate)}`,
           type: 'WARNING'
         });
       }
@@ -661,7 +662,7 @@ export default function Dashboard() {
                       <Clock className="w-2 h-2 text-white/40" />
                       <p className="text-[9px] text-white/50 font-medium">
                         {apt.start ? (
-                          `${new Date(apt.start).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} • ${new Date(apt.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+                          `${safeFormatDate(apt.start, { day: '2-digit', month: 'short' })} • ${new Date(apt.start).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }).replace('Invalid Date', 'Data inválida')}`
                         ) : (
                           'Horário não definido'
                         )}
@@ -820,7 +821,7 @@ export default function Dashboard() {
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
                       <span className="text-[7px] font-black text-white/30 uppercase">
-                        {new Date(ticket.date).toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase().replace('.', '')}
+                        {safeFormatDate(ticket.date, { weekday: 'short' }).toUpperCase().replace('.', '')}
                       </span>
                     </div>
                     <p className="text-[10px] font-bold text-white/80 truncate group-hover/item:text-white transition-colors">
@@ -1317,6 +1318,49 @@ export default function Dashboard() {
           </div>
           <span className="text-[10px] font-bold uppercase tracking-wider relative z-10 drop-shadow-md">Backup / Demo</span>
         </button>
+      )
+    },
+    {
+      id: 'condfy-login',
+      type: 'square',
+      component: (
+        <a 
+          href="https://web.condfy.com.br/login"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => isEditMode && e.preventDefault()}
+          className={`w-full h-full p-4 flex flex-col justify-between group relative overflow-hidden border border-white/20 shadow-[0_0_30px_rgba(0,255,128,0.2)] hover:shadow-[0_0_50px_rgba(0,255,128,0.4)] active:scale-95 text-white transition-all duration-500 rounded-[2.5rem] ${isEditMode ? 'cursor-grab' : 'cursor-pointer'}`}
+          style={{
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #064e3b 100%)',
+          }}
+        >
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay pointer-events-none" />
+          
+          {/* Animated gradient sweep */}
+          <div className="absolute -inset-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000 ease-in-out -skew-x-12 pointer-events-none" />
+          
+          {/* Glowing orbs */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/30 blur-[50px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-emerald-400/50 transition-all duration-700" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/30 blur-[50px] rounded-full translate-y-1/2 -translate-x-1/2 group-hover:bg-indigo-400/50 transition-all duration-700" />
+          
+          <div className="absolute top-4 right-4 z-10">
+            <ExternalLink className="w-4 h-4 text-emerald-300 opacity-50 group-hover:opacity-100 transition-opacity" />
+          </div>
+
+          <div className="flex justify-center items-center h-full relative z-10">
+            <div className="relative">
+              <div className="absolute inset-0 bg-emerald-400 blur-xl opacity-40 group-hover:opacity-80 transition-opacity duration-500 rounded-full" />
+              <div className="p-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl relative z-10 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                <Maximize2 className="w-10 h-10 text-emerald-300 drop-shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="relative z-10 flex flex-col items-center">
+            <span className="text-[12px] font-black uppercase tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-indigo-300 drop-shadow-md">Condfy Web</span>
+            <span className="text-[8px] font-bold text-white/50 tracking-widest mt-1">SISTEMA EXTERNO</span>
+          </div>
+        </a>
       )
     }
   ];

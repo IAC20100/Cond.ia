@@ -5,6 +5,7 @@ import { BackButton } from '../components/BackButton';
 import { useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { generatePdf, sharePdf } from '../utils/pdfGenerator';
+import { safeFormatDate } from '../utils/dateUtils';
 import { toast } from 'react-hot-toast';
 
 export default function TicketView() {
@@ -61,7 +62,7 @@ export default function TicketView() {
       if (ticket.id === '123') {
         fileName = 'OS_CORRETIVA_Condominio_Flores_20-02-2026.pdf';
       } else {
-        const dateStr = new Date(ticket.date).toLocaleDateString('pt-BR').replace(/\//g, '-');
+        const dateStr = safeFormatDate(ticket.date).replace(/\//g, '-');
         const safeName = client?.name ? client.name.replace(/[^a-zA-Z0-9\s]/g, '').trim().replace(/\s+/g, '_') : 'Tarefa';
         fileName = ticket.type === 'TAREFA' ? `Tarefa_${safeName}_${dateStr}.pdf` : `OS_${ticket.type}_${safeName}_${dateStr}.pdf`;
       }
@@ -91,7 +92,7 @@ export default function TicketView() {
       if (ticket.id === '123') {
         fileName = 'OS_CORRETIVA_Condominio_Flores_20-02-2026.pdf';
       } else {
-        const dateStr = new Date(ticket.date).toLocaleDateString('pt-BR').replace(/\//g, '-');
+        const dateStr = safeFormatDate(ticket.date).replace(/\//g, '-');
         const safeName = client?.name ? client.name.replace(/[^a-zA-Z0-9\s]/g, '').trim().replace(/\s+/g, '_') : 'Tarefa';
         fileName = ticket.type === 'TAREFA' ? `Tarefa_${safeName}_${dateStr}.pdf` : `OS_${ticket.type}_${safeName}_${dateStr}.pdf`;
       }
@@ -245,7 +246,7 @@ export default function TicketView() {
           <div className="text-right">
             <div className="mb-6">
               <p className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-1">Data da OS</p>
-              <p className="text-xl font-black text-zinc-900">{new Date(ticket.date).toLocaleDateString('pt-BR')}</p>
+              <p className="text-xl font-black text-zinc-900">{safeFormatDate(ticket.date)}</p>
             </div>
             <div>
               <p className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-1">Técnico Responsável</p>

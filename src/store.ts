@@ -15,6 +15,7 @@ import {
 } from './types';
 
 import { sendWhatsAppMessage } from './services/whatsappService';
+import { safeFormatDate } from './utils/dateUtils';
 
 export const useStore = create<AppState>()(
   persist(
@@ -1618,7 +1619,7 @@ export const useStore = create<AppState>()(
         if (get().whatsappEnabled && move.clientId) {
           const client = get().clients.find(c => c.id === move.clientId);
           if (client?.phone) {
-            const message = `Olá ${client.name}, sua mudança (${move.type === 'IN' ? 'Entrada' : 'Saída'}) foi agendada para ${new Date(move.date).toLocaleDateString('pt-BR')}.`;
+            const message = `Olá ${client.name}, sua mudança (${move.type === 'IN' ? 'Entrada' : 'Saída'}) foi agendada para ${safeFormatDate(move.date)}.`;
             sendWhatsAppMessage(client.phone, message);
           }
         }
@@ -2511,7 +2512,11 @@ export const useStore = create<AppState>()(
       addWaterReading: (reading) => {
         const lastReading = get().consumptionReadings
           .filter(r => r.clientId === reading.clientId && r.type === 'WATER')
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+          .sort((a, b) => {
+            const dateA = a.date ? new Date(a.date).getTime() : 0;
+            const dateB = b.date ? new Date(b.date).getTime() : 0;
+            return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+          })[0];
         
         const previousValue = lastReading ? lastReading.currentValue : 0;
         const consumption = reading.reading - previousValue;
@@ -2531,7 +2536,11 @@ export const useStore = create<AppState>()(
       addEnergyReading: (reading) => {
         const lastReading = get().consumptionReadings
           .filter(r => r.clientId === reading.clientId && r.type === 'ENERGY')
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+          .sort((a, b) => {
+            const dateA = a.date ? new Date(a.date).getTime() : 0;
+            const dateB = b.date ? new Date(b.date).getTime() : 0;
+            return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+          })[0];
         
         const previousValue = lastReading ? lastReading.currentValue : 0;
         const consumption = reading.reading - previousValue;

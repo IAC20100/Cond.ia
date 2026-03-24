@@ -31,11 +31,15 @@ export default function Receipts() {
       const searchStr = `${client?.name} ${r.description} ${r.value}`.toLowerCase();
       return searchStr.includes(searchTerm.toLowerCase());
     })
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => {
+      const dateA = a.date ? new Date(a.date).getTime() : 0;
+      const dateB = b.date ? new Date(b.date).getTime() : 0;
+      return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+    });
 
   const handleSaveAndDownload = async () => {
-    if (!clientId || value <= 0 || !description) {
-      toast.error('Preencha todos os campos obrigatórios (Cliente, Valor e Descrição).');
+    if (!clientId || value <= 0 || !description || !date) {
+      toast.error('Preencha todos os campos obrigatórios (Cliente, Valor, Descrição e Data).');
       return;
     }
 
@@ -55,7 +59,8 @@ export default function Receipts() {
       });
 
       // Generate PDF
-      const fileName = `Recibo_${selectedClient?.name.replace(/\s+/g, '_')}_${date}.pdf`;
+      const safeName = selectedClient?.name ? selectedClient.name.replace(/\s+/g, '_') : 'Cliente';
+      const fileName = `Recibo_${safeName}_${date}.pdf`;
       
       await generatePdf(receiptRef.current, fileName);
       
@@ -74,8 +79,8 @@ export default function Receipts() {
   };
 
   const handleSaveAndShare = async () => {
-    if (!clientId || value <= 0 || !description) {
-      toast.error('Preencha todos os campos obrigatórios (Cliente, Valor e Descrição).');
+    if (!clientId || value <= 0 || !description || !date) {
+      toast.error('Preencha todos os campos obrigatórios (Cliente, Valor, Descrição e Data).');
       return;
     }
 
@@ -94,7 +99,8 @@ export default function Receipts() {
       });
 
       // Share PDF
-      const fileName = `Recibo_${selectedClient?.name.replace(/\s+/g, '_')}_${date}.pdf`;
+      const safeName = selectedClient?.name ? selectedClient.name.replace(/\s+/g, '_') : 'Cliente';
+      const fileName = `Recibo_${safeName}_${date}.pdf`;
       await sharePdf(receiptRef.current, fileName);
       
       // Reset form
@@ -129,7 +135,8 @@ export default function Receipts() {
       if (downloadRef.current) {
         try {
           const client = clients.find(c => c.id === receipt.clientId);
-          const fileName = `Recibo_${client?.name.replace(/\s+/g, '_')}_${receipt.date}.pdf`;
+          const safeName = client?.name ? client.name.replace(/\s+/g, '_') : 'Cliente';
+          const fileName = `Recibo_${safeName}_${receipt.date}.pdf`;
           await generatePdf(downloadRef.current, fileName);
           toast.success('Download iniciado!');
         } catch (error) {
@@ -151,7 +158,8 @@ export default function Receipts() {
       if (downloadRef.current) {
         try {
           const client = clients.find(c => c.id === receipt.clientId);
-          const fileName = `Recibo_${client?.name.replace(/\s+/g, '_')}_${receipt.date}.pdf`;
+          const safeName = client?.name ? client.name.replace(/\s+/g, '_') : 'Cliente';
+          const fileName = `Recibo_${safeName}_${receipt.date}.pdf`;
           await sharePdf(downloadRef.current, fileName);
           toast.success('Compartilhamento iniciado!');
         } catch (error: any) {
@@ -230,7 +238,7 @@ export default function Receipts() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleSaveAndDownload}
-            disabled={isGenerating || !clientId || value <= 0 || !description}
+            disabled={isGenerating || !clientId || value <= 0 || !description || !date}
             className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 flex items-center gap-3 border border-white/20 backdrop-blur-md transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
           >
             <Download className="w-6 h-6 group-hover:translate-y-1 transition-transform" /> 
@@ -241,7 +249,7 @@ export default function Receipts() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleSaveAndShare}
-            disabled={isGenerating || !clientId || value <= 0 || !description}
+            disabled={isGenerating || !clientId || value <= 0 || !description || !date}
             className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 flex items-center gap-3 border border-emerald-400/20 backdrop-blur-md transition-all disabled:opacity-30 disabled:cursor-not-allowed group shadow-lg shadow-emerald-500/20"
           >
             <Share2 className="w-6 h-6 group-hover:scale-110 transition-transform" /> 
@@ -396,7 +404,7 @@ export default function Receipts() {
               {/* Footer */}
               <div className="mt-32 pt-8 text-center break-inside-avoid no-break">
                 <p className="mb-20 text-lg">
-                  _________________, {new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                  _________________, {date && !isNaN(new Date(date).getTime()) ? new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : 'Data inválida'}
                 </p>
                 <div className="grid grid-cols-2 gap-16 max-w-3xl mx-auto">
                   <div className="flex flex-col items-center w-full">
@@ -480,7 +488,7 @@ export default function Receipts() {
                           className="group hover:bg-white/5 transition-colors"
                         >
                           <td className="px-6 py-4 font-medium text-white/70">
-                            {new Date(receipt.date).toLocaleDateString('pt-BR')}
+                            {receipt.date && !isNaN(new Date(receipt.date).getTime()) ? new Date(receipt.date).toLocaleDateString('pt-BR') : 'Data inválida'}
                           </td>
                           <td className="px-6 py-4">
                             <div className="font-bold text-white">{client?.name || 'Cliente excluído'}</div>
@@ -600,7 +608,7 @@ export default function Receipts() {
             {/* Footer */}
             <div className="mt-32 pt-8 text-center break-inside-avoid no-break">
               <p className="mb-20 text-lg">
-                _________________, {new Date(downloadingReceipt.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                _________________, {downloadingReceipt.date && !isNaN(new Date(downloadingReceipt.date).getTime()) ? new Date(downloadingReceipt.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : 'Data inválida'}
               </p>
               <div className="grid grid-cols-2 gap-16 max-w-3xl mx-auto">
                 <div className="flex flex-col items-center w-full">

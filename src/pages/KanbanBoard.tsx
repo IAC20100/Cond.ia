@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Clock, Wrench, CheckCircle, AlertCircle, Calendar, User, Edit, Plus, MoreVertical, ExternalLink, X } from 'lucide-react';
 import { BackButton } from '../components/BackButton';
 import { motion, AnimatePresence } from 'framer-motion';
+import { safeFormatDate } from '../utils/dateUtils';
 
 const COLUMNS: { id: TicketStatus; title: string; icon: any; color: string; glowColor: string }[] = [
   { id: 'APROVADO', title: 'Aprovado', icon: CheckCircle, color: 'text-blue-400', glowColor: 'shadow-blue-500/20' },
@@ -203,7 +204,7 @@ export default function KanbanBoard() {
                         <div className="space-y-3 mt-6 pt-6 border-t border-white/10">
                           <div className="flex items-center gap-3 text-sm text-white/80 font-bold">
                             <Calendar className="w-4 h-4 shrink-0 text-blue-400" />
-                            {new Date(ticket.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                            {safeFormatDate(ticket.date, { day: '2-digit', month: 'long', year: 'numeric' })}
                           </div>
                           <div className="flex items-center gap-3 text-sm text-white/80 font-bold">
                             <User className="w-4 h-4 shrink-0 text-purple-400" />
